@@ -2,31 +2,44 @@ const express = require('express');
 
 const path = require('path');
 
-const moment = require('moment');
+const logger = require('./middleware/logger.js');
 
-const members = require('./Members');
+const exphbs = require('express-handlebars');
+
+const members = ('./Members');
 
 const app = express();
 
-const logger = (req, res, next) => {
-	console.log(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
-	next();
-}
+
 
 //Inititializing middleware
 
-app.use(logger);
+//app.use(logger);
 
-//Gets all members
+//Handlebars Middleware
+app.engine('handlebars', exphbs.engine());
+app.set('view engine', 'handlebars');
 
-app.get('/api/members', (req, res) => {
-	res.json(members);
 
+//Body Parser Middleware
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+
+//Homepage route
+
+app.get('/', (req, res) => res.render('index', {
+
+	title: 'Members App',
+	members
 })
+);
 
 //set static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+//Members API routes
+
+app.use('/api/members', require('./routes/api/members'));
 
 const PORT = process.env.PORT || 5000;
 
